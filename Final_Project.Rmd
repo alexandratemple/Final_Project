@@ -1,0 +1,331 @@
+---
+title: "Understanding the Competition Between STAT3 and STAT5 in Breast Cancer"
+author: "Alexandra Temple"
+output:
+  pdf_document: 
+    includes:  
+      in_header: my_header.tex
+  word_document: default
+  html_document: default
+bibliography: references.bib
+csl: abmb.csl
+---
+
+```{r setup, include = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(readxl)
+library(tidyr)
+library(dplyr)
+library(stringr)
+
+```
+
+### Introduction
+
+Around 13% of women will develop invasive breast cancer during their lifetime [@noauthor_us_2021]. In 2020, 2.3 million women were diagnosed with breast cancer globally [@noauthor_breast_nodate]. The most aggressive form, Triple Negative Breast Cancer (TNBC), has the highest recurrence and metastasis rates with the fewest treatment options available, and accounts for 10 to 15% of all invasive breast cancers [@qin_stat3_2019]. Due to its aggressive nature, TNBC usually results in a worse prognosis than other invasive breast cancers [@noauthor_types_nodate]. TNBC lacks estrogen receptors (ER), progesterone receptors (PR), and human epidermal growth factor receptor 2 (HER2), limiting the treatment options available [@noauthor_types_nodate], which provides an opportunity to develop novel therapeutics targeting TNBC and other invasive breast cancers. 
+
+The Signal Transducer and Activator of Transcription (STAT) family consists of seven members, STAT1, STAT2, STAT3, STAT4, STAT5a, STAT5b, and STAT6 where STAT5a and STAT5b are often grouped together as STAT5. Previous research has found STAT3 to play an important role in breast cancer. It is involved in cancer initiation, progression, metastasis, chemotherapy resistance, and immune invasion [@walker_distinct_2014]. STAT3 is inappropriately active in 70% of all breast cancers but is most associated with TNBC [@walker_distinct_2014]. STAT3 functions primarily through the JAK/STAT signaling pathway. Upon stimulation by a hormone or growth factor, tyrosine kinase receptors will come together to phosphorylate Janus Kinase (JAK). JAK then phosphorylates STAT3 which dimerizes with another phosphorylated STAT3 (pSTAT3) and can translocate into the nucleus to regulate transcription of certain target genes. Inappropriately active STAT3 is an indicator of a poorer prognosis, making it a desirable target for novel treatments. 
+
+
+![JAK/STAT Pathway.](JAKSTAT.png){width=35%}
+
+
+STAT5 has also been found to be inappropriately active in some breast cancers [@walker_reciprocal_2009]. Previous studies have shown that STAT3 and STAT5 share a subset of overlapping binding sites and thus can regulate expression of the same gene [@walker_distinct_2014]. Interestingly, when both STAT3 and STAT5 are concurrently active, STAT5 can outcompete STAT3 for binding to certain genes and STAT3 can outcompete STAT5 for binding to other genes [@walker_distinct_2014, @walker_reciprocal_2009]. Additionally, STAT3 and STAT5 can have reciprocal effects on certain overlapping target genes. For example, STAT3 enhances BCL6 expression, whereas STAT5 represses it. Concurrent activation of both STAT3 and STAT5 is often associated with a more favorable prognosis compared to activation of STAT3 alone, thus promoting the question of whether the overlapping target genes play a significant role in breast cancer progression and metastasis. 
+
+![Prognosis Picture.](Prognosis.png){width=35%}
+
+
+There are currently 110 known overlapping binding sites for STAT3 and STAT5 in two-dimensional cell culture. However, breast cancer cells do not just grow in a singlular monolayer within the body. Thus, the 3D model allows cells to grow in spheres rather than adhere to the culture dish, providing a better model that more closely mimics the interactions of cells within the body. 
+
+![2D vs 3D Cell Culture.](2Dvs3D.png){width=35%}
+
+
+Therefore, we can study the overlapping binding sites with a more comprehensive model to better understand the competition in binding between STAT3 and STAT5. 
+
+
+### Methods
+
+### Laboratory Methods
+SKBR3 cells were used throughout the following experiments. 10^7 cells were plated and grown for 24 hours in 2D and 5X10^6 cells were plated and grown for 48 hours in 3D. Cells were stimulated with either Prolactin (prl), Leukemia Inhibitory Factor(LIF), or a combination of the two. Prolactin was used to activate STAT5 and LIF was used to activate STAT3. Chromatin Immunoprecipitation (ChIP) was performed as directed by the Magnetic Pierce ChIP kit. Subsequent qPCR analysis was performed to analyze STAT3 and STAT5 binding. 
+
+### qPCR analysis
+Subsequent qPCR analysis was performed to analyze STAT3 and STAT5 binding. Ct values were averaged for each triplicate or quadruplicate. Each immunoprecipitation Ct value was normalized to the input. This normalized Ct (dCt) was then normalized again (ddCt) to the housekeeping gene, rhodopsin. Relative binding was calculated by 2^(-ddCt) and plotted in a graph. The qPCR analysis was performed using R code which can be found in the Supplementary portion of this document.
+
+
+### Results
+
+### STAT3 and STAT5 binding in 2D vs 3D
+Previous research has identified Region B as an overlapping binding site where STAT5 out competes STAT3 for binding in 2D (8). Additionally, STAT5 represses transcription and STAT3 enhances it. Region B is the STAT3 and STAT5 binding site for the gene B-cell Lymphoma 6 (BCL6), which encodes for the transcriptional modulator, BCL6. A similar observation was seen in my data (Figure \ref{fig:RegionB2D}). 
+
+
+```{r RegionB2D, RegionB2D, echo = FALSE, warning = FALSE, fig.show="hold", fig.align='center', out.width="40%", fig.cap = 'STAT3 and STAT5 binding to Region B in 2D\\label{fig:RegionB2D}'}
+# data for 2D ChIP pSTAT3 and pSTAT5 for binding site region B (BCL6)
+
+# pSTAT3 data
+stimregB2D3 <- c('(-/-)', '(+) prl', '(+) LIF', '(+/+)')
+relbindregB2D3 <- c(1, 1.449479571, 5.704672243, 0.612092247)
+STAT3 <- c('pSTAT3', 'pSTAT3', 'pSTAT3', 'pSTAT3')
+
+BCL62D3 <- data.frame(stimregB2D3, relbindregB2D3, STAT3)
+
+# plot for pSTAT3
+ggplot() +
+  geom_col(data = BCL62D3, mapping = aes(x = stimregB2D3, y = relbindregB2D3), fill = "black") +
+  theme_classic() +
+  scale_fill_manual(values = "black") +
+  labs(x = "Stimulation", y = "pSTAT3 Relative Binding") +
+  ggtitle("pSTAT3 Relative Binding to Region B in 2D") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# pSTAT5
+stimregB2D5 <- c('(-/-)', '(+) prl', '(+) LIF', '(+/+)')
+relbindregB2D5 <- c(1, 45.94086132, 0.590102351, 57.08791239)
+STAT5 <- c('pSTAT5', 'pSTAT5', 'pSTAT5', 'pSTAT5')
+
+BCL62D5 <- data.frame(stimregB2D5, relbindregB2D5, STAT5)
+
+# plot for pSTAT5
+ggplot() +
+  geom_col(data = BCL62D5, mapping = aes(x = stimregB2D5, y = relbindregB2D5), fill = "black") +
+  theme_classic() +
+  scale_fill_manual(values = "black") +
+  labs(x = "Stimulation", y = "pSTAT5 Relative Binding") +
+  ggtitle("pSTAT5 Relative Binding to Region B in 2D") +
+  theme(plot.title = element_text(hjust = 0.5))
+  
+```
+
+
+However, when observing STAT3 and STAT5 binding in 3D, STAT5 no longer has a dominant effect over STAT3 (Figure \ref{fig:RegionB3D}). This preliminary data demonstrates differences between STAT3 and STAT5 binding between 2D and 3D cell culture. 
+
+
+```{r Region B3D, echo = FALSE, warning = FALSE, fig.show="hold", fig.align='center', out.width="40%", fig.cap = 'STAT3 and STAT5 binding to Region B in 3D\\label{fig:RegionB3D}'}
+# data for 3D ChIP pSTAT3 and pSTAT5 for binding site region B (BCL6)
+
+# pSTAT3 data
+stimregB3D3 <- c('(-/-)', '(+) prl', '(+) LIF', '(+/+)')
+relbindregB3D3 <- c(1, 5.021864144, 7.719961493, 5.392588693)
+STAT31 <- c('pSTAT3', 'pSTAT3', 'pSTAT3', 'pSTAT3')
+
+BCL63D3 <- data.frame(stimregB3D3, relbindregB3D3, STAT31)
+
+# plot for pSTAT3
+ggplot() +
+  geom_col(data = BCL63D3, mapping = aes(x = stimregB3D3, y = relbindregB3D3), fill = "black") +
+  theme_classic() +
+  scale_fill_manual(values = "black") +
+  labs(x = "Stimulation", y = "pSTAT3 Relative Binding") +
+  ggtitle("pSTAT3 Relative Binding to Region B in 3D") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# pSTAT5
+stimregB3D5 <- c('(-/-)', '(+) prl', '(+) LIF', '(+/+)')
+relbindregB3D5 <- c(1, 4.636901242, 0.575157508, 2.172874427)
+STAT51 <- c('pSTAT5', 'pSTAT5', 'pSTAT5', 'pSTAT5')
+
+BCL63D5 <- data.frame(stimregB3D5, relbindregB3D5, STAT51)
+
+# plot for pSTAT5
+ggplot() +
+  geom_col(data = BCL63D5, mapping = aes(x = stimregB3D5, y = relbindregB3D5), fill = "black") +
+  theme_classic() +
+  scale_fill_manual(values = "black") +
+  labs(x = "Stimulation", y = "pSTAT5 Relative Binding") +
+  ggtitle("pSTAT5 Relative Binding to Region B in 3D") +
+  theme(plot.title = element_text(hjust = 0.5))
+  
+```
+
+
+STAT3 is known to enhance BCL6 expression and STAT5 is known to repress it. This is seen when observing the RNA expression (Figure \ref{fig:BCL6}). STAT5 out competes STAT3 for binding, which is also indicated by the decrease in BCL6 RNA expression with concurrent STAT3 and STAT5 activation. However, in 3D, although BCL6 expression is decreased with concurrent STAT3 and STAT5 activation, it is not fully repressed as in 2D. 
+
+
+```{r BCL6, echo = FALSE, warning = FALSE, fig.show = "hold", out.width = "40%", fig.align = 'center', fig.cap = 'BCL6 RNA Expression\\label{fig:BCL6}'}
+# BCL6 RNA data
+
+stimBCL6 <- c('(-/-)', '(+) prl', '(+) LIF', '(+/+)')
+relexpBCL6 <- c(1, 0.04290333, 2.262978152, 0.019267725, 1, 0.699941273, 3.655429414, 1.215721413)
+DBCL6 <- c('2D', '2D', '2D', '2D', '3D', '3D', '3D', '3D')
+
+BCL6RNA <- data.frame(stimBCL6, relexpBCL6, DBCL6)
+
+
+ggplot() +
+  geom_col(data = BCL6RNA, mapping = aes(x = stimBCL6, y = relexpBCL6, group = DBCL6, fill = DBCL6), color = "black", position = position_dodge2(preserve = "single")) +
+  theme_classic() +
+  scale_fill_manual(values = c("black", "white")) +
+  labs(x = "Stimulation", y = "Relative RNA Expression", fill = "") +
+  ggtitle("RNA Expression for BCL6") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+### Additional STAT3 binding differences between 2D and 3D
+Additional preliminary data suggests that there are other overlapping binding sites that demonstrate differences in binding between 2D and 3D. Specifically, binding sites 2050, 66, and 873 seemed to have differences (Figure \ref{fig:ChIP2Dvs3D}).
+
+
+```{r ChIP2Dvs3D, echo = FALSE, warning = FALSE, fig.show="hold", fig.align='center', out.width="40%", fig.cap = 'pSTAT3 Relative Binding in 2D vs 3D\\label{fig:ChIP2Dvs3D}'}
+# normalized 2D ChIP data
+
+stimnorm2D <- c('(-/-)', '(+) prl', '(+) LIF', '(+/+)', '(-/-)', '(+) prl', '(+) LIF', '(+/+)', '(-/-)', '(+) prl', '(+) LIF', '(+/+)')
+relbindnorm2D <- c(1, 1.339070576, 5.238820387, 0.64403634, 1, 1.042297413, 2.655747525, 1.295304243, 1, 0.913759877, 1.926411621, 0.116709022)
+bindsitenorm2D <- c('66', '66', '66', '66', '2050', '2050', '2050', '2050', '873', '873', '873', '873')
+
+ChIP2D_norm <- data.frame(stimnorm2D, relbindnorm2D, bindsitenorm2D)
+
+
+ggplot() +
+  geom_col(data = ChIP2D_norm, mapping = aes(x = stimnorm2D, y = relbindnorm2D, group = bindsitenorm2D, fill = bindsitenorm2D), color = "black", position = position_dodge2(preserve = "single")) +
+  theme_classic() +
+  scale_fill_manual(values = c("black", " dark gray", "light gray", "white")) +
+  labs(x = "Stimulation", y = "pSTAT3 Relative Binding", fill = "") +
+  ggtitle("pSTAT3 Relative Binding to Target Genes in 2D") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+
+# normalized 3D ChIP data
+
+stimnorm3D <- c('(-/-)', '(+) prl', '(+) LIF', '(+/+)', '(-/-)', '(+) prl', '(+) LIF', '(+/+)', '(-/-)', '(+) prl', '(+) LIF', '(+/+)')
+relbindnorm3D <- c(1, 1.339078001, 6.219728695, 5.107590989, 1, 1.416697755, 7.340913748, 10.47745195, 1, 1.461466743, 9.460081754, 5.133280157)
+bindsitenorm3D <- c('66', '66', '66', '66', '2050', '2050', '2050', '2050', '873', '873', '873', '873')
+
+ChIP3D_norm <- data.frame(stimnorm3D, relbindnorm3D, bindsitenorm3D)
+
+
+ggplot() +
+  geom_col(data = ChIP3D_norm, mapping = aes(x = stimnorm3D, y = relbindnorm3D, group = bindsitenorm3D, fill = bindsitenorm3D), color = "black", position = position_dodge2(preserve = "single")) +
+  theme_classic() +
+  scale_fill_manual(values = c("black", " dark gray", "light gray", "white")) +
+  labs(x = "Stimulation", y = "pSTAT3 Relative Binding", fill = "") +
+  ggtitle("pSTAT3 Relative Binding to Target Genes in 3D") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+
+Unfortunately, there is no STAT5 data to infer anything about competition between STAT3 and STAT5 for these three binding sites. However, STAT3 and STAT5 knockdown data could potentially suggest some competition (Figure \ref{fig:ko}). Region B and 66 both demonstrate an increase in pSTAT3 binding when STAT5 is knocked down when compared to the control. Although 873 and 2050 show a decrease in binding when STAT5 is knocked down when compared to the control, additional replicates need to be completed. In addition, knock down experiments need to be completed with STAT5 binding. 
+
+
+```{r ko, echo = FALSE, warning = FALSE, fig.show="hold", out.width="40%", fig.align = 'center', fig.cap = 'pSTAT3 Binding with STAT3 and STAT5 knockdowns\\label{fig:ko}'}
+# siRNA ChIP for STAT3 with koSTAT3#2 and koSTAT5b normalized
+
+relbindnorm <- c(1, 0.423849209, 1.173450512, 1, 1.980658286, 2.88758417, 1, 0.629876111, 0.856124193, 1, 0.474587169, 0.963318649)
+bindsitenorm <- c('Region B', 'Region B', 'Region B', '66', '66', '66', '2050', '2050', '2050', '873', '873', '873')
+siRNAnorm <- c('siUC', 'siSTAT3#2', 'siSTAT5b', 'siUC', 'siSTAT3#2', 'siSTAT5b', 'siUC', 'siSTAT3#2', 'siSTAT5b', 'siUC', 'siSTAT3#2', 'siSTAT5b')
+
+siRNA_datanorm <- data.frame(relbindnorm, bindsitenorm, siRNAnorm)
+
+
+ggplot() +
+  geom_col(data = siRNA_datanorm, mapping = aes(x = bindsitenorm, y = relbindnorm, group = siRNAnorm, fill = siRNAnorm), color = "black", position = position_dodge2(preserve = "single")) +
+  theme_classic() +
+  scale_fill_manual(values = c("black", "gray", "white")) +
+  labs(x = "Binding Site", y = "pSTAT3 Relative Binding", fill = "") +
+  ggtitle("pSTAT3 Relative Binding with Prolactin and LIF Stimulation in 2D") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+```
+
+
+### Discussion
+
+Region B was previously identified as an overlapping binding site where STAT5 out competes STAT3 for binding. Additionally, STAT5 represses transcription when bound to region B and STAT3 enhances it. My data supports the previous studies. However, when analyzing STAT3 and STAT5 competition for binding to region B in 3D, the results do not align with 2D. Hypoxic conditions are increased in 3D due to the nature of sphere formation and overall STAT3 and STAT5 expression tend to be higher in 3D, suggesting that the competition for binding could be dependent on different conditions and chromatin accessibility. Future directions include collecting ChIP sample for STAT5 to assess competition for other overlapping target genes. Furthermore, subsequent analysis of gene expression will be necessary to identify overlapping target genes in which STAT3 and STAT5 have reciprocal effects on gene expression. 
+
+
+### Supplementary Results and Code
+
+```{r STAT5vspSTAT5, echo = TRUE, warning = FALSE, results = 'hide', fig.show="hold", fig.align='center', out.width="40%", fig.cap='STAT5 vs pSTAT5 binding to target genes\\label{fig:STAT5vspSTAT5}'}
+
+## pull in data
+
+# skip number of lines that have are not part of data
+qpcr_data <- read_excel("~/Desktop/UNH Research Stuff/ChIP - 3D/8.30.2021 STAT5 vs pSTAT5.xls", skip = 43)
+
+
+## Clean up data
+
+# separate Well Position column into row and column
+tidy_data <- 
+  separate(qpcr_data, `Well Position`, into = c("row", "column"), 
+           sep = 1, convert = TRUE) 
+
+# split Sample Name into two characters
+strsplit(tidy_data$`Sample Name`, " ")
+
+# separate Sample Name column into treatment and antibody
+tidy_data <- 
+  separate(tidy_data, `Sample Name`, into = c("treatment", "antibody"),
+           sep = " ", convert = TRUE)
+
+
+## qPCR analysis
+
+# average Ct value for each triplicate or quadriplicate group
+summarized_data <- 
+  tidy_data %>%
+  group_by(treatment, antibody, `Target Name`) %>%
+  summarise(mean_Ct = mean(CT))
+
+# make inputs reference Ct value
+input_ref_data <- 
+  summarized_data %>%
+  filter(str_detect(antibody, "input")) %>% 
+  rename("ref_input_Ct" = "mean_Ct")
+
+# combine the reference input data and the summarized data
+dCt_data <- 
+  left_join(summarized_data, input_ref_data, by = c("Target Name", "treatment"))
+
+# calculate dCt
+dCt_data <- 
+  dCt_data %>% 
+  group_by(treatment, antibody.x, `Target Name`) %>% 
+  summarise(dCt = mean_Ct - ref_input_Ct)
+
+# remove input rows since no longer needed
+dCt_data <- 
+  subset(dCt_data, antibody.x != "input")
+
+# make rhodopsin housekeeping gene for normalization
+dCt_ref_data <- 
+  dCt_data %>%
+  filter(str_detect(`Target Name`, "rho")) %>% 
+  rename("ref_dCt" = "dCt")
+
+# join rhodopsin reference data and dCt data
+ddCt_data <- 
+  left_join(dCt_data, dCt_ref_data, by = c("treatment", "antibody.x"))
+
+# calculate ddCt 
+ddCt_data <- 
+  ddCt_data %>% 
+  group_by(treatment, antibody.x, `Target Name.x`) %>% 
+  summarise(ddCt = dCt - ref_dCt)
+
+# calculate relative expression (2^(-ddCt))
+rel_expression <- 
+  ddCt_data %>% 
+  group_by(treatment, antibody.x, `Target Name.x`) %>% 
+  summarise(rel_exp = 2^(-ddCt))
+
+
+##visualize data
+
+ggplot() +
+  geom_col(data = rel_expression, mapping = aes(x = treatment, y = rel_exp, group = antibody.x, fill = antibody.x), color = "black", position = position_dodge2(preserve = "single")) +
+  theme_classic() +
+  facet_grid(~`Target Name.x`, scales = 'free') +
+  scale_fill_manual(values = c("black", "white")) +
+  labs(x = "Stimulation", y = "STAT5 Relative Binding", fill = "") +
+  ggtitle("STAT5 vs pSTAT5 Binding in 3D") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+```
+
+
+## References
